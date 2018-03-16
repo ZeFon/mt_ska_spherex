@@ -10,12 +10,13 @@ import sys
 folder=sys.argv[1]
 file_root=sys.argv[2]
 
-
 os.system('cp '+file_root+'_root.ini '+file_root+'.ini')
 
 inifile=ConfigObj(file_root+'.ini')
 
 l_max=int(inifile['l_max_scalar'])
+
+terms='_eall'
 
 
 #for each subset
@@ -24,7 +25,7 @@ nw_raw=int(inifile['num_redshiftwindows'])
 nw=2*nw_raw
 inifile['DoTerms_per_Window']='T'
 inifile['num_redshiftwindows']=str(nw)
-inifile['output_root']=folder+file_root+'_fnl'
+
 for j in range(nw_raw):
     inifile['counts_density('+str(j+1)+')']= 'T'
     inifile['counts_density_newt('+str(j+1)+')']= 'T'
@@ -45,21 +46,24 @@ for j in range(nw_raw):
     inifile['redshift_bias('+str(j+nw_raw+1)+')'] = inifile['redshift_bias('+str(j+1)+')']
     inifile['redshift_dlog10Ndm('+str(j+nw_raw+1)+')'] = inifile['redshift_dlog10Ndm('+str(j+1)+')']
     inifile['redshift_dNdz('+str(j+nw_raw+1)+')'] = inifile['redshift_dNdz('+str(j+1)+')']
-    inifile['Dofnlder('+str(j+nw_raw+1)+')']= 'T'
+    inifile['counts_evolve('+str(j+nw_raw+1)+')']= 'T'
+    inifile['counts_ISW('+str(j+nw_raw+1)+')']= 'T'
+    inifile['counts_velocity('+str(j+nw_raw+1)+')']= 'T'
+    inifile['counts_potential('+str(j+nw_raw+1)+')']= 'T'
+    inifile['counts_density_newt('+str(j+nw_raw+1)+')'] = 'T'
+
+inifile['output_root']=folder+file_root+terms
 inifile.write()
-
 os.system('./camb '+file_root+'.ini')
-
 dcl=np.zeros((l_max-1,nw_raw**2+1))
-dclraw=np.loadtxt(folder+file_root+'_fnl_scalCovCls.dat')[:,1:]
+dclraw=np.loadtxt(folder+file_root+terms+'_scalCovCls.dat')[:,1:]
 ders_matrix=np.zeros((nw_raw,nw_raw))
 for l in range(len(dcl[:,0])):
     dcl[l,0]=2+l
     ders_matrix=(dclraw[l,:].reshape((nw+3,nw+3))[(3+nw_raw):,3:(nw_raw+3)])*2*np.pi/((2+l)*(l+3))
     ders_matrix=ders_matrix+ders_matrix.T
     dcl[l,1:]=ders_matrix.reshape(nw_raw**2)
-np.savetxt(folder+file_root+'_fnl_dCl.dat',dcl)
-
+np.savetxt(folder+file_root+terms+'_dCl.dat',dcl)
 inifile['output_root']=''
 inifile['DoTerms_per_Window']='F'
 inifile['num_redshiftwindows']=str(nw_raw)

@@ -6,10 +6,12 @@
 import os
 from configobj import ConfigObj
 import numpy as np
+import os.path
+import sys
+folder=sys.argv[1]
+file_root=sys.argv[2]
 
-#general stuff
-folder='mt_ska_spherex/'
-file_root='isw_MT_hi_ha_dz02_z02_30'
+os.system('cp '+file_root+'_root.ini '+file_root+'.ini')
 
 inifile=ConfigObj(file_root+'.ini')
 
@@ -27,6 +29,7 @@ inifile['num_redshiftwindows']=str(nw+1)
 
 for j in range(nw):
     inifile['counts_density('+str(j+1)+')']= 'T'
+    inifile['counts_density_newt('+str(j+1)+')']= 'T'
     inifile['counts_redshift('+str(j+1)+')']= 'T'
     inifile['counts_ISW('+str(j+1)+')']= 'T'
     inifile['counts_velocity('+str(j+1)+')']= 'T'
@@ -37,6 +40,8 @@ inifile['Dobder('+str(nw+1)+')']='T'
 inifile.write()
 
 for j in range(nw):
+    if os.path.isfile(folder+file_root+terms[j]+'_dCl.dat'):
+        continue
     inifile['output_root']=folder+file_root+terms[j]
     inifile['redshift('+str(nw+1)+')'] = inifile['redshift('+str(j+1)+')'] 
     inifile['redshift_sigma('+str(nw+1)+')'] = inifile['redshift_sigma('+str(j+1)+')']
